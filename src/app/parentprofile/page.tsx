@@ -42,7 +42,7 @@ const ParentProfilePage: React.FC = () => {
       email={profileData?.email || ""}
       phone={profileData?.phone || ""}
       address={profileData?.address || ""}
-      children={profileData?.children || []}
+      childList={profileData?.children || []} // Alterado para 'childList'
     />
   );
 };

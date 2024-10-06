@@ -8,7 +8,7 @@ import { auth } from "../../services/firebase";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string>(""); // Tipagem explícita da string
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -16,8 +16,12 @@ const Login = () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.push("/"); // Redireciona para a página inicial após o login
-    } catch (err) {
-      setError("Erro ao fazer login. Verifique suas credenciais.");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message); // Usar a mensagem de erro se `error` for uma instância de `Error`
+      } else {
+        setError("Erro ao fazer login. Verifique suas credenciais.");
+      }
     }
   };
 

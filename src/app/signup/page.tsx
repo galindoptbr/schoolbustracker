@@ -39,8 +39,12 @@ const SignupPage: React.FC = () => {
       });
 
       router.push("/");
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Ocorreu um erro desconhecido.");
+      }
     }
   };
 

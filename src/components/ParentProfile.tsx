@@ -16,7 +16,7 @@ interface ParentProfileProps {
   email: string;
   phone: string;
   address: string;
-  children: Child[];
+  childList: { name: string; age: number }[];
 }
 
 const ParentProfile: React.FC<ParentProfileProps> = ({
@@ -24,7 +24,7 @@ const ParentProfile: React.FC<ParentProfileProps> = ({
   email,
   phone,
   address,
-  children,
+  childList,
 }) => {
   const { user } = useAuth();
   const router = useRouter();
@@ -34,13 +34,13 @@ const ParentProfile: React.FC<ParentProfileProps> = ({
   const [currentAddress, setCurrentAddress] = useState<string>(address);
   const [updatedPhone, setUpdatedPhone] = useState<string>("");
   const [updatedAddress, setUpdatedAddress] = useState<string>("");
-  const [profileChildren, setProfileChildren] = useState<Child[]>(children);
+  const [profileChildren, setProfileChildren] = useState<Child[]>(childList);
 
   useEffect(() => {
     setCurrentPhone(phone);
     setCurrentAddress(address);
-    setProfileChildren(children);
-  }, [phone, address, children]);
+    setProfileChildren(childList);
+  }, [phone, address, childList]);
 
   const handleAddChild = async () => {
     if (user && newChildName && newChildAge !== "") {

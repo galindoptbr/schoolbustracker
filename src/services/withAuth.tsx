@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const withAuth = (WrappedComponent: React.ComponentType) => {
-  const AuthenticatedComponent = (props: any) => {
+  const AuthenticatedComponent = (props: React.ComponentProps<typeof WrappedComponent>) => {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);

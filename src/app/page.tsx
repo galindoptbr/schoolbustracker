@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import LocationTracker from "../components/LocationTracker";
 import LogoutButton from "../components/LogoutButton";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../services/firebase";
