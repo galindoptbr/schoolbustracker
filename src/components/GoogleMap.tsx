@@ -19,7 +19,7 @@ const GoogleMapComponent: React.FC<GoogleMapProps> = ({ lat, lng }) => {
   };
 
   return (
-    <LoadScript googleMapsApiKey="AIzaSyBUDGydxbHD7jbiVk8ctMaisktLCXU4k-c">
+    <LoadScript googleMapsApiKey="AIzaSyAklI2XvDEYhmjfypu8cq4PTNvfA__0v7U">
       <GoogleMap
         mapContainerStyle={mapContainerStyle}
         center={center}
