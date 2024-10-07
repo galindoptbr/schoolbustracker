@@ -9,6 +9,8 @@ const LocationTracker: React.FC = () => {
   const { user } = useAuth();
 
   useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+
     const saveLocation = async () => {
       if (coordinates && user) {
         try {
@@ -25,7 +27,16 @@ const LocationTracker: React.FC = () => {
       }
     };
 
-    saveLocation();
+    if (user) {
+      // Atualizar a localização a cada 5 segundos
+      intervalId = setInterval(saveLocation, 5000);
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
   }, [coordinates, user]);
 
   return (
