@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { setDoc, doc } from "firebase/firestore";
+import { setDoc, doc, collection, addDoc } from "firebase/firestore";
 import { auth, db } from "../../services/firebase";
 
 const SignupPage: React.FC = () => {
@@ -37,6 +37,15 @@ const SignupPage: React.FC = () => {
         children: [],
         role: isParent ? "pai" : isDriver ? "motorista" : "indefinido",
       });
+
+      // Se o usuário for um motorista, adicionar também à coleção "drivers"
+      if (isDriver) {
+        await setDoc(doc(db, "drivers", user.uid), {
+          uid: user.uid,
+          name,
+          email,
+        });
+      }
 
       router.push("/");
     } catch (err: unknown) {

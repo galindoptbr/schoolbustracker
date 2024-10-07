@@ -2,13 +2,21 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { doc, updateDoc, arrayUnion, getDoc } from "firebase/firestore";
+import {
+  doc,
+  updateDoc,
+  arrayUnion,
+  getDoc,
+  collection,
+  getDocs,
+} from "firebase/firestore";
 import { db } from "../services/firebase";
 import useAuth from "../hooks/useAuth";
 
 interface Child {
   name: string;
   age: number;
+  driverId?: string;
 }
 
 interface ParentProfileProps {
@@ -16,7 +24,7 @@ interface ParentProfileProps {
   email: string;
   phone: string;
   address: string;
-  childList: { name: string; age: number }[];
+  childList: { name: string; age: number; driverId?: string }[];
 }
 
 const ParentProfile: React.FC<ParentProfileProps> = ({
@@ -30,6 +38,10 @@ const ParentProfile: React.FC<ParentProfileProps> = ({
   const router = useRouter();
   const [newChildName, setNewChildName] = useState<string>("");
   const [newChildAge, setNewChildAge] = useState<number | "">("");
+  const [selectedDriver, setSelectedDriver] = useState<string>("");
+  const [driversList, setDriversList] = useState<
+    { id: string; name: string }[]
+  >([]);
   const [currentPhone, setCurrentPhone] = useState<string>(phone);
   const [currentAddress, setCurrentAddress] = useState<string>(address);
   const [updatedPhone, setUpdatedPhone] = useState<string>("");
@@ -42,14 +54,36 @@ const ParentProfile: React.FC<ParentProfileProps> = ({
     setProfileChildren(childList);
   }, [phone, address, childList]);
 
+  useEffect(() => {
+    const fetchDrivers = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "drivers"));
+        const drivers = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          name: doc.data().name,
+        }));
+        setDriversList(drivers);
+      } catch (error) {
+        console.error("Erro ao buscar motoristas:", error);
+      }
+    };
+
+    fetchDrivers();
+  }, []);
+
   const handleAddChild = async () => {
     if (user && newChildName && newChildAge !== "") {
       const docRef = doc(db, "users", user.uid);
       await updateDoc(docRef, {
-        children: arrayUnion({ name: newChildName, age: newChildAge }),
+        children: arrayUnion({
+          name: newChildName,
+          age: newChildAge,
+          driverId: selectedDriver,
+        }),
       });
       setNewChildName("");
       setNewChildAge("");
+      setSelectedDriver("");
 
       // Recarregar os dados do documento após adicionar um filho
       const docSnap = await getDoc(docRef);
@@ -168,6 +202,18 @@ const ParentProfile: React.FC<ParentProfileProps> = ({
                 onChange={(e) => setNewChildAge(Number(e.target.value) || "")}
                 className="mb-2 p-2 border rounded-md w-full"
               />
+              <select
+                value={selectedDriver}
+                onChange={(e) => setSelectedDriver(e.target.value)}
+                className="mb-2 p-2 border rounded-md w-full"
+              >
+                <option value="">Selecione um Motorista</option>
+                {driversList.map((driver) => (
+                  <option key={driver.id} value={driver.id}>
+                    {driver.name}
+                  </option>
+                ))}
+              </select>
               <button
                 onClick={handleAddChild}
                 className="py-2 px-4 bg-green-500 text-white rounded-md hover:bg-green-600"
@@ -176,7 +222,7 @@ const ParentProfile: React.FC<ParentProfileProps> = ({
               </button>
               <button
                 onClick={handleGoBack}
-                className="py-2 px-4 ml-44 bg-gray-500 text-white rounded-md hover:bg-gray-600 mb-4"
+                className="py-2 px-4 ml-40 bg-gray-500 text-white rounded-md hover:bg-gray-600 mb-4"
               >
                 Voltar
               </button>
