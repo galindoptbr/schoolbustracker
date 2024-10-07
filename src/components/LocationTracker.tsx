@@ -1,17 +1,20 @@
-// components/LocationTracker.tsx
 import React, { useEffect } from "react";
 import useGeolocation from "../hooks/useGeolocation";
 import { db } from "../services/firebase";
-import { collection, addDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
+import useAuth from "../hooks/useAuth";
 
 const LocationTracker: React.FC = () => {
   const { coordinates, error } = useGeolocation();
+  const { user } = useAuth();
 
   useEffect(() => {
     const saveLocation = async () => {
-      if (coordinates) {
+      if (coordinates && user) {
         try {
-          await addDoc(collection(db, "locations"), {
+          // Salvar a localização do motorista no Firestore
+          await setDoc(doc(db, "locations", user.uid), {
+            driverId: user.uid,
             latitude: coordinates.latitude,
             longitude: coordinates.longitude,
             timestamp: new Date(),
@@ -23,7 +26,7 @@ const LocationTracker: React.FC = () => {
     };
 
     saveLocation();
-  }, [coordinates]);
+  }, [coordinates, user]);
 
   return (
     <div className="p-4">

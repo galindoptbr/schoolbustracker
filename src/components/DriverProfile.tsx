@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { collection, getDocs, updateDoc, doc } from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore";
 import { db } from "../services/firebase";
 import useAuth from "../hooks/useAuth";
 import LocationTracker from "./LocationTracker";
@@ -15,7 +15,7 @@ interface Child {
 const DriverProfile: React.FC = () => {
   const { user } = useAuth();
   const [childrenList, setChildrenList] = useState<Child[]>([]);
-  const [isSharingLocation, setIsSharingLocation] = useState<boolean>(false);
+  const [isSharingLocation, setIsSharingLocation] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchChildren = async () => {
@@ -30,18 +30,16 @@ const DriverProfile: React.FC = () => {
           // Iterar por cada documento dos pais para buscar crianças com driverId igual ao do motorista
           usersSnapshot.forEach((doc) => {
             const data = doc.data();
-            if (data.children) {
-              data.children.forEach(
-                (child: { name: string; age: number; driverId?: string }) => {
-                  if (child.driverId === user.uid) {
-                    associatedChildren.push({
-                      name: child.name,
-                      age: child.age,
-                      checkedIn: false, // Inicialmente não marcado
-                    });
-                  }
+            if (Array.isArray(data.children)) {
+              data.children.forEach((child: { name: string; age: number; driverId?: string }) => {
+                if (child.driverId === user.uid) {
+                  associatedChildren.push({
+                    name: child.name,
+                    age: child.age,
+                    checkedIn: false, // Inicialmente não marcado
+                  });
                 }
-              );
+              });
             }
           });
 
@@ -65,11 +63,8 @@ const DriverProfile: React.FC = () => {
         // Iniciar o compartilhamento de localização
         setIsSharingLocation(true);
 
-        // Atualizar o estado da criança no Firestore
-        const userDocRef = doc(db, "users", user.uid);
-        await updateDoc(userDocRef, {
-          [`children.${childIndex}.checkedIn`]: true,
-        });
+        // Atualizar o estado da criança no Firestore (se necessário)
+        // Dependendo da estrutura da coleção, precisamos localizar o documento correto.
       } catch (error) {
         console.error("Erro ao dar check-in na criança:", error);
       }
@@ -77,7 +72,15 @@ const DriverProfile: React.FC = () => {
   };
 
   const handleEndTrip = () => {
+    // Finalizar o compartilhamento de localização
     setIsSharingLocation(false);
+
+    // Remover o check-in de todas as crianças
+    const updatedChildren = childrenList.map((child) => ({
+      ...child,
+      checkedIn: false,
+    }));
+    setChildrenList(updatedChildren);
   };
 
   return (
@@ -90,14 +93,11 @@ const DriverProfile: React.FC = () => {
           <ul>
             {childrenList.map((child, index) => (
               <li key={index} className="mb-1">
-                <strong>Nome:</strong> {child.name} | <strong>Idade:</strong>{" "}
-                {child.age}
+                <strong>Nome:</strong> {child.name} | <strong>Idade:</strong> {child.age}
                 <button
                   onClick={() => handleCheckIn(index)}
                   className={`ml-4 py-1 px-2 rounded-md text-white ${
-                    child.checkedIn
-                      ? "bg-green-500"
-                      : "bg-blue-500 hover:bg-blue-600"
+                    child.checkedIn ? "bg-green-500" : "bg-blue-500 hover:bg-blue-600"
                   }`}
                   disabled={child.checkedIn}
                 >
