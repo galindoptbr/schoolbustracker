@@ -2,8 +2,6 @@ import React, { useEffect, useState } from "react";
 import {
   collection,
   getDocs,
-  query,
-  where,
   updateDoc,
   doc,
 } from "firebase/firestore";
