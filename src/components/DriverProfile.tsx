@@ -1,10 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  collection,
-  getDocs,
-  updateDoc,
-  doc,
-} from "firebase/firestore";
+import { collection, getDocs, updateDoc, doc } from "firebase/firestore";
 import { db } from "../services/firebase";
 import useAuth from "../hooks/useAuth";
 import LocationTracker from "./LocationTracker";
@@ -36,16 +31,17 @@ const DriverProfile: React.FC = () => {
           usersSnapshot.forEach((doc) => {
             const data = doc.data();
             if (data.children) {
-              data.children.forEach((child: any) => {
-                if (child.driverId === user.uid) {
-                  associatedChildren.push({
-                    name: child.name,
-                    age: child.age,
-                    checkedIn: false, // Inicialmente não marcado
-                    driverId: child.driverId,
-                  });
+              data.children.forEach(
+                (child: { name: string; age: number; driverId?: string }) => {
+                  if (child.driverId === user.uid) {
+                    associatedChildren.push({
+                      name: child.name,
+                      age: child.age,
+                      checkedIn: false, // Inicialmente não marcado
+                    });
+                  }
                 }
-              });
+              );
             }
           });
 

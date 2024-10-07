@@ -2,14 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import LogoutButton from "../components/LogoutButton";
-import {
-  collection,
-  getDocs,
-  doc,
-  getDoc,
-  query,
-  where,
-} from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, query, where } from "firebase/firestore";
 import { db } from "../services/firebase";
 import useAuth from "../hooks/useAuth";
 import dynamic from "next/dynamic";
@@ -24,9 +17,7 @@ const DynamicGoogleMap = dynamic(() => import("../components/GoogleMap"), {
 const Home: React.FC = () => {
   const { user, loading, isAuthenticated } = useAuth();
   const [userRole, setUserRole] = useState<string | null>(null);
-  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
-    null
-  );
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isSharingLocation, setIsSharingLocation] = useState<boolean>(false);
 
   useEffect(() => {
@@ -70,10 +61,7 @@ const Home: React.FC = () => {
                   const querySnapshot = await getDocs(locationQuery);
                   querySnapshot.forEach((locationDoc) => {
                     const locationData = locationDoc.data();
-                    console.log(
-                      "Localização encontrada para motorista:",
-                      locationData
-                    );
+                    console.log("Localização encontrada para motorista:", locationData);
                     setLocation({
                       lat: locationData.latitude,
                       lng: locationData.longitude,
