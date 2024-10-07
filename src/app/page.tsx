@@ -4,9 +4,9 @@ import React, { useEffect, useState } from "react";
 import LogoutButton from "../components/LogoutButton";
 import {
   collection,
-  getDocs,
   doc,
   getDoc,
+  onSnapshot,
   query,
   where,
 } from "firebase/firestore";
@@ -27,7 +27,6 @@ const Home: React.FC = () => {
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
     null
   );
-  const [isSharingLocation, setIsSharingLocation] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchUserRole = async () => {
@@ -50,6 +49,8 @@ const Home: React.FC = () => {
   }, [user]);
 
   useEffect(() => {
+    let unsubscribe: (() => void) | null = null;
+
     if (isAuthenticated && user && userRole === "pai") {
       const fetchChildLocation = async () => {
         try {
@@ -62,23 +63,25 @@ const Home: React.FC = () => {
               console.log("Crianças encontradas:", data.children);
               for (const child of data.children) {
                 if (child.driverId) {
-                  // Buscar localização do motorista associado à criança
+                  // Ouvinte em tempo real para a localização do motorista associado à criança
                   const locationQuery = query(
                     collection(db, "locations"),
                     where("driverId", "==", child.driverId)
                   );
-                  const querySnapshot = await getDocs(locationQuery);
-                  querySnapshot.forEach((locationDoc) => {
-                    const locationData = locationDoc.data();
-                    console.log(
-                      "Localização encontrada para motorista:",
-                      locationData
-                    );
-                    setLocation({
-                      lat: locationData.latitude,
-                      lng: locationData.longitude,
+
+                  // Usando onSnapshot para ouvir atualizações em tempo real
+                  unsubscribe = onSnapshot(locationQuery, (querySnapshot) => {
+                    querySnapshot.forEach((locationDoc) => {
+                      const locationData = locationDoc.data();
+                      console.log(
+                        "Localização atualizada para motorista:",
+                        locationData
+                      );
+                      setLocation({
+                        lat: locationData.latitude,
+                        lng: locationData.longitude,
+                      });
                     });
-                    setIsSharingLocation(true);
                   });
                 }
               }
@@ -91,6 +94,13 @@ const Home: React.FC = () => {
 
       fetchChildLocation();
     }
+
+    // Limpar o ouvinte em tempo real ao desmontar
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, [isAuthenticated, userRole, user]);
 
   if (loading) {
@@ -110,9 +120,7 @@ const Home: React.FC = () => {
         <ParentProfileButton />
         <LogoutButton />
       </div>
-      {isSharingLocation && location && (
-        <DynamicGoogleMap lat={location.lat} lng={location.lng} />
-      )}
+      {location && <DynamicGoogleMap lat={location.lat} lng={location.lng} />}
     </div>
   );
 };
