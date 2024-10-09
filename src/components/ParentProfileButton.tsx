@@ -1,5 +1,6 @@
 import { useRouter } from "next/navigation";
 import React from "react";
+import { CiUser } from "react-icons/ci";
 
 const ParentProfileButton: React.FC = () => {
   const router = useRouter();
@@ -10,9 +11,10 @@ const ParentProfileButton: React.FC = () => {
 
   return (
     <button
-      className="mt-4 py-2 px-4 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+      className="flex items-center gap-4 text-xl mt-4 text-black rounded-m"
       onClick={handleProfile}
     >
+      <CiUser size={25} />
       Perfil
     </button>
   );

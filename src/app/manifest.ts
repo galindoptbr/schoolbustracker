@@ -4,16 +4,21 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Carrinha",
     short_name: "Carrinha",
-    description: "Onde esta meu filho",
+    description: "Onde está meu filho",
     start_url: "/",
     display: "standalone",
-    background_color: "#fff",
-    theme_color: "#fff",
+    background_color: "#f4f4f5",
+    theme_color: "#f4f4f5",
     icons: [
       {
-        src: "/favicon.ico",
-        sizes: "any",
-        type: "image/x-icon",
+        src: "/android-chrome-192x192.png",
+        sizes: "192x192",
+        type: "image/png",
+      },
+      {
+        src: "/apple-touch-icon.png",
+        sizes: "180x180",
+        type: "image/png",
       },
     ],
   };

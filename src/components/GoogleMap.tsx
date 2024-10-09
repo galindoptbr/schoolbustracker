@@ -10,12 +10,17 @@ interface GoogleMapProps {
 const GoogleMapComponent: React.FC<GoogleMapProps> = ({ lat, lng }) => {
   const mapContainerStyle = {
     width: "100%",
-    height: "500px",
+    height: "800px",
   };
 
   const center = {
     lat: lat,
     lng: lng,
+  };
+
+  const options = {
+    disableDefaultUI: true, // Remove todos os controles padrões
+    zoomControl: false, // Opcional: também desabilitar o controle de zoom separadamente
   };
 
   return (
@@ -24,6 +29,7 @@ const GoogleMapComponent: React.FC<GoogleMapProps> = ({ lat, lng }) => {
         mapContainerStyle={mapContainerStyle}
         center={center}
         zoom={13}
+        options={options}
       >
         <Marker position={center} />
       </GoogleMap>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
 import { db } from "../services/firebase";
 import useAuth from "../hooks/useAuth";
 import LocationTracker from "./LocationTracker";
@@ -15,7 +15,7 @@ interface Child {
 const DriverProfile: React.FC = () => {
   const { user } = useAuth();
   const [childrenList, setChildrenList] = useState<Child[]>([]);
-  const [isSharingLocation, setIsSharingLocation] = useState<boolean>(true);
+  const [isSharingLocation, setIsSharingLocation] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchChildren = async () => {
@@ -63,15 +63,18 @@ const DriverProfile: React.FC = () => {
         // Iniciar o compartilhamento de localização
         setIsSharingLocation(true);
 
-        // Atualizar o estado da criança no Firestore (se necessário)
-        // Dependendo da estrutura da coleção, precisamos localizar o documento correto.
+        // Atualizar o estado no Firestore para indicar que a viagem começou
+        const driverDocRef = doc(db, "drivers", user.uid);
+        await updateDoc(driverDocRef, {
+          isSharingLocation: true,
+        });
       } catch (error) {
         console.error("Erro ao dar check-in na criança:", error);
       }
     }
   };
 
-  const handleEndTrip = () => {
+  const handleEndTrip = async () => {
     // Finalizar o compartilhamento de localização
     setIsSharingLocation(false);
 
@@ -81,6 +84,14 @@ const DriverProfile: React.FC = () => {
       checkedIn: false,
     }));
     setChildrenList(updatedChildren);
+
+    // Atualizar o estado no Firestore para indicar que a viagem terminou
+    if (user) {
+      const driverDocRef = doc(db, "drivers", user.uid);
+      await updateDoc(driverDocRef, {
+        isSharingLocation: false,
+      });
+    }
   };
 
   return (

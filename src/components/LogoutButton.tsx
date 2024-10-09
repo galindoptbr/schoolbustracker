@@ -3,6 +3,7 @@
 import React from "react";
 import { getAuth, signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
+import { CiLogout } from "react-icons/ci";
 
 const LogoutButton: React.FC = () => {
   const router = useRouter();
@@ -20,9 +21,10 @@ const LogoutButton: React.FC = () => {
   return (
     <button
       onClick={handleLogout}
-      className="mt-4 py-2 px-4 text-white bg-red-500 rounded-md hover:bg-red-600"
+      className="flex items-center gap-4 text-xl mt-4 text-black rounded-m"
     >
-      Sair
+      <CiLogout size={25} />
+      Deslogar
     </button>
   );
 };

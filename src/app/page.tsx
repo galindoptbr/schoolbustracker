@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import LogoutButton from "../components/LogoutButton";
 import {
   collection,
   doc,
@@ -13,8 +12,8 @@ import {
 import { db } from "../services/firebase";
 import useAuth from "../hooks/useAuth";
 import dynamic from "next/dynamic";
-import ParentProfileButton from "../components/ParentProfileButton";
 import DriverProfile from "../components/DriverProfile";
+import MenuButton from "@/components/MenuButton";
 
 // Importação dinâmica do GoogleMapComponent
 const DynamicGoogleMap = dynamic(() => import("../components/GoogleMap"), {
@@ -27,6 +26,7 @@ const Home: React.FC = () => {
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
     null
   );
+  const [isChildOnTheWay, setIsChildOnTheWay] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchUserRole = async () => {
@@ -63,6 +63,16 @@ const Home: React.FC = () => {
               console.log("Crianças encontradas:", data.children);
               for (const child of data.children) {
                 if (child.driverId) {
+                  // Verificar se o motorista está compartilhando a localização
+                  const driverDocRef = doc(db, "drivers", child.driverId);
+                  const driverDocSnap = await getDoc(driverDocRef);
+                  if (
+                    driverDocSnap.exists() &&
+                    driverDocSnap.data().isSharingLocation
+                  ) {
+                    setIsChildOnTheWay(true);
+                  }
+
                   // Ouvinte em tempo real para a localização do motorista associado à criança
                   const locationQuery = query(
                     collection(db, "locations"),
@@ -112,15 +122,22 @@ const Home: React.FC = () => {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-100 p-4">
-      <h1 className="text-3xl font-bold text-blue-600 mb-4">
-        Onde está meu filho
-      </h1>
-      <div className="flex gap-4 mb-4">
-        <ParentProfileButton />
-        <LogoutButton />
+    <div className="flex flex-col abs items-center justify-center">
+      <div className="absolute top-7 left-5 z-10">
+        <MenuButton />
       </div>
       {location && <DynamicGoogleMap lat={location.lat} lng={location.lng} />}
+      <div className="flex flex-col absolute bg-zinc-50 rounded-t-2xl w-full text-center h-[350px] top-[600px]">
+        <h1
+          className={`text-3xl font-bold p-4 ${
+            isChildOnTheWay ? "text-blue-500" : "text-zinc-600"
+          }`}
+        >
+          {isChildOnTheWay
+            ? "Seu filho está a caminho."
+            : "Seu filho não está na carrinha."}
+        </h1>
+      </div>
     </div>
   );
 };
