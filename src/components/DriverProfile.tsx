@@ -87,12 +87,11 @@ const DriverProfile: React.FC = () => {
     }));
     setChildrenList(updatedChildren);
 
-    // Atualizar o estado no Firestore para indicar que a viagem terminou e a criança chegou
+    // Atualizar o estado no Firestore para indicar que a viagem terminou
     if (user) {
       const driverDocRef = doc(db, "drivers", user.uid);
       await updateDoc(driverDocRef, {
         isSharingLocation: false,
-        hasArrived: true, // Atualiza para indicar que a criança chegou ao destino
       });
     }
   };
