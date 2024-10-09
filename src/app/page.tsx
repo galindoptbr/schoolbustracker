@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import LogoutButton from "../components/LogoutButton";
 import {
   collection,
   doc,
@@ -12,6 +13,7 @@ import {
 import { db } from "../services/firebase";
 import useAuth from "../hooks/useAuth";
 import dynamic from "next/dynamic";
+import ParentProfileButton from "../components/ParentProfileButton";
 import DriverProfile from "../components/DriverProfile";
 import MenuButton from "@/components/MenuButton";
 
@@ -61,6 +63,10 @@ const Home: React.FC = () => {
             const data = docSnap.data();
             if (data.children) {
               console.log("Crianças encontradas:", data.children);
+
+              // Reinicializar `isChildOnTheWay` para garantir um valor consistente
+              let childOnTheWay = false;
+
               for (const child of data.children) {
                 if (child.driverId) {
                   // Verificar se o motorista está compartilhando a localização
@@ -70,7 +76,7 @@ const Home: React.FC = () => {
                     driverDocSnap.exists() &&
                     driverDocSnap.data().isSharingLocation
                   ) {
-                    setIsChildOnTheWay(true);
+                    childOnTheWay = true;
                   }
 
                   // Ouvinte em tempo real para a localização do motorista associado à criança
@@ -95,6 +101,9 @@ const Home: React.FC = () => {
                   });
                 }
               }
+
+              // Atualizar o estado `isChildOnTheWay` com base nas verificações
+              setIsChildOnTheWay(childOnTheWay);
             }
           }
         } catch (error) {
@@ -126,7 +135,11 @@ const Home: React.FC = () => {
       <div className="absolute top-7 left-5 z-10">
         <MenuButton />
       </div>
-      {location && <DynamicGoogleMap lat={location.lat} lng={location.lng} />}
+      {location ? (
+        <DynamicGoogleMap lat={location.lat} lng={location.lng} />
+      ) : (
+        <p>Localização ainda não disponível...</p>
+      )}
       <div className="flex flex-col absolute bg-zinc-50 rounded-t-2xl w-full text-center h-[350px] top-[600px]">
         <h1
           className={`text-3xl font-bold p-4 ${
