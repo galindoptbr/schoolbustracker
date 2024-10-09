@@ -27,7 +27,6 @@ const Home: React.FC = () => {
     null
   );
   const [isChildOnTheWay, setIsChildOnTheWay] = useState<boolean>(false);
-  const [isChildArrived, setIsChildArrived] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchUserRole = async () => {
@@ -50,8 +49,7 @@ const Home: React.FC = () => {
   }, [user]);
 
   useEffect(() => {
-    let unsubscribeLocation: (() => void) | null = null;
-    let unsubscribeDriver: (() => void) | null = null;
+    let unsubscribe: (() => void) | null = null;
 
     if (isAuthenticated && user && userRole === "pai") {
       const fetchChildLocation = async () => {
@@ -64,32 +62,20 @@ const Home: React.FC = () => {
             if (data.children) {
               console.log("Crianças encontradas:", data.children);
 
-              // Reinicializar `isChildOnTheWay` e `isChildArrived` para garantir valores consistentes
+              // Reinicializar `isChildOnTheWay` para garantir um valor consistente
               let childOnTheWay = false;
-              let childArrived = false;
 
               for (const child of data.children) {
                 if (child.driverId) {
-                  // Ouvinte em tempo real para o status do motorista associado à criança
+                  // Verificar se o motorista está compartilhando a localização
                   const driverDocRef = doc(db, "drivers", child.driverId);
-                  unsubscribeDriver = onSnapshot(
-                    driverDocRef,
-                    (driverDocSnap) => {
-                      if (driverDocSnap.exists()) {
-                        const driverData = driverDocSnap.data();
-                        if (driverData.isSharingLocation) {
-                          setIsChildOnTheWay(true);
-                          setIsChildArrived(false);
-                        } else if (driverData.hasArrived) {
-                          setIsChildArrived(true);
-                          setIsChildOnTheWay(false);
-                        } else {
-                          setIsChildOnTheWay(false);
-                          setIsChildArrived(false);
-                        }
-                      }
-                    }
-                  );
+                  const driverDocSnap = await getDoc(driverDocRef);
+                  if (
+                    driverDocSnap.exists() &&
+                    driverDocSnap.data().isSharingLocation
+                  ) {
+                    childOnTheWay = true;
+                  }
 
                   // Ouvinte em tempo real para a localização do motorista associado à criança
                   const locationQuery = query(
@@ -97,28 +83,25 @@ const Home: React.FC = () => {
                     where("driverId", "==", child.driverId)
                   );
 
-                  unsubscribeLocation = onSnapshot(
-                    locationQuery,
-                    (querySnapshot) => {
-                      querySnapshot.forEach((locationDoc) => {
-                        const locationData = locationDoc.data();
-                        console.log(
-                          "Localização atualizada para motorista:",
-                          locationData
-                        );
-                        setLocation({
-                          lat: locationData.latitude,
-                          lng: locationData.longitude,
-                        });
+                  // Usando onSnapshot para ouvir atualizações em tempo real
+                  unsubscribe = onSnapshot(locationQuery, (querySnapshot) => {
+                    querySnapshot.forEach((locationDoc) => {
+                      const locationData = locationDoc.data();
+                      console.log(
+                        "Localização atualizada para motorista:",
+                        locationData
+                      );
+                      setLocation({
+                        lat: locationData.latitude,
+                        lng: locationData.longitude,
                       });
-                    }
-                  );
+                    });
+                  });
                 }
               }
 
-              // Atualizar os estados `isChildOnTheWay` e `isChildArrived` com base nas verificações
+              // Atualizar o estado `isChildOnTheWay` com base nas verificações
               setIsChildOnTheWay(childOnTheWay);
-              setIsChildArrived(childArrived);
             }
           }
         } catch (error) {
@@ -129,13 +112,10 @@ const Home: React.FC = () => {
       fetchChildLocation();
     }
 
-    // Limpar os ouvintes em tempo real ao desmontar
+    // Limpar o ouvinte em tempo real ao desmontar
     return () => {
-      if (unsubscribeLocation) {
-        unsubscribeLocation();
-      }
-      if (unsubscribeDriver) {
-        unsubscribeDriver();
+      if (unsubscribe) {
+        unsubscribe();
       }
     };
   }, [isAuthenticated, userRole, user]);
