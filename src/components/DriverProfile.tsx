@@ -31,15 +31,17 @@ const DriverProfile: React.FC = () => {
           usersSnapshot.forEach((doc) => {
             const data = doc.data();
             if (Array.isArray(data.children)) {
-              data.children.forEach((child: { name: string; age: number; driverId?: string }) => {
-                if (child.driverId === user.uid) {
-                  associatedChildren.push({
-                    name: child.name,
-                    age: child.age,
-                    checkedIn: false, // Inicialmente não marcado
-                  });
+              data.children.forEach(
+                (child: { name: string; age: number; driverId?: string }) => {
+                  if (child.driverId === user.uid) {
+                    associatedChildren.push({
+                      name: child.name,
+                      age: child.age,
+                      checkedIn: false, // Inicialmente não marcado
+                    });
+                  }
                 }
-              });
+              );
             }
           });
 
@@ -85,11 +87,12 @@ const DriverProfile: React.FC = () => {
     }));
     setChildrenList(updatedChildren);
 
-    // Atualizar o estado no Firestore para indicar que a viagem terminou
+    // Atualizar o estado no Firestore para indicar que a viagem terminou e a criança chegou
     if (user) {
       const driverDocRef = doc(db, "drivers", user.uid);
       await updateDoc(driverDocRef, {
         isSharingLocation: false,
+        hasArrived: true, // Atualiza para indicar que a criança chegou ao destino
       });
     }
   };
@@ -104,11 +107,14 @@ const DriverProfile: React.FC = () => {
           <ul>
             {childrenList.map((child, index) => (
               <li key={index} className="mb-1">
-                <strong>Nome:</strong> {child.name} | <strong>Idade:</strong> {child.age}
+                <strong>Nome:</strong> {child.name} | <strong>Idade:</strong>{" "}
+                {child.age}
                 <button
                   onClick={() => handleCheckIn(index)}
                   className={`ml-4 py-1 px-2 rounded-md text-white ${
-                    child.checkedIn ? "bg-green-500" : "bg-blue-500 hover:bg-blue-600"
+                    child.checkedIn
+                      ? "bg-green-500"
+                      : "bg-blue-500 hover:bg-blue-600"
                   }`}
                   disabled={child.checkedIn}
                 >
